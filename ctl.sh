@@ -1,30 +1,43 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
 
 ! read -rd '' HELP_STRING <<"EOF"
-Usage: ctl.sh [OPTION]... --type [aws|haproxy]
-Install nginx ingress controller to Kubernetes cluster.
+Usage: ctl.sh [OPTION]... [-i|--install] KIBANA_HOST
+   or: ctl.sh [OPTION]...
+
+Install EFK (ElasticSearch, Fluentd, Kibana) stack to Kubernetes cluster.
+
 Mandatory arguments:
-  -i, --install                install into 'kube-nginx-ingress' namespace
+  -i, --install                install into 'monitoring' namespace, override with '-n' option
   -u, --upgrade                upgrade existing installation, will reuse password and host names
   -d, --delete                 remove everything, including the namespace
-  -t, --type                   load balancer type, either 'aws' or 'haproxy'
+  --storage-class-name         name of the storage class
+  --storage-size               storage size with optional IEC suffix
+  --memory-usage               java RSS limit
+
 Optional arguments:
   -h, --help                   output this message
-      --ingress-replicas       set ingress controller replicas count
 EOF
 
 RANDOM_NUMBER=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1)
 TMP_DIR="/tmp/prometheus-ctl-$RANDOM_NUMBER"
-WORKDIR="$TMP_DIR/kubernetes-nginx-ingress"
+WORKDIR="$TMP_DIR/kubernetes-efk"
+DEPLOY_SCRIPT="deploy.sh"
+TEARDOWN_SCRIPT="teardown.sh"
 
+MODE=""
+USER=admin
+USER_BASE64=$(echo -n "$USER" | base64 -w0)
+NAMESPACE="kube-logging"
 FIRST_INSTALL="true"
 STORAGE_CLASS_NAME="rbd"
 STORAGE_SIZE="20Gi"
+MEMORY_USAGE="8192m"
 
-TEMP=$(getopt -o i,u,d,n:,h --long namespace:,help,install,upgrade,delete,retention:,storage-class-name:,storage-size:,memory-usage: \
-             -n 'ctl.sh' -- "$@")
+
+TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage: \
+             -n 'ctl' -- "$@")
 
 eval set -- "$TEMP"
 
@@ -36,10 +49,12 @@ while true; do
       MODE=upgrade; shift ;;
     -d | --delete )
       MODE=delete; shift ;;
-    --replicas )
-      INGRESS_CONTROLLER_REPLICAS="$2"; shift 2;;
-    -t | --type )
-      TYPE="$2"; shift 2;;
+    --storage-class-name )
+      STORAGE_CLASS_NAME="$2"; shift 2;;
+    --storage-size )
+      STORAGE_SIZE="$2"; shift 2;;
+    --memory-usage )
+      MEMORY_USAGE="$2"; shift 2;;
     -h | --help )
       echo "$HELP_STRING"; exit 0 ;;
     -- )
@@ -49,76 +64,84 @@ while true; do
   esac
 done
 
-case $TYPE in 
-  aws) 
-    TYPE="aws";;
-  haproxy)
-    TYPE="haproxy";;
-  *)
-    echo "Load balancer type is invalid. Please, consult with the '-h' option output."
-    exit 1
-    ;;
-esac 
+if [ -z "$MODE" ]; then echo "Mode of operation not provided. Use '-h' to print proper usage."; exit 1; fi
 
+type curl >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
+type base64 >/dev/null 2>&1 || { echo >&2 "I require base64 but it's not installed.  Aborting."; exit 1; }
 type git >/dev/null 2>&1 || { echo >&2 "I require git but it's not installed.  Aborting."; exit 1; }
 type kubectl >/dev/null 2>&1 || { echo >&2 "I require kubectl but it's not installed.  Aborting."; exit 1; }
 type jq >/dev/null 2>&1 || { echo >&2 "I require jq but it's not installed.  Aborting."; exit 1; }
+type htpasswd >/dev/null 2>&1 || { echo >&2 "I require htpasswd but it's not installed. Please, install 'apache2-utils'. Aborting."; exit 1; }
+
 
 mkdir -p "$TMP_DIR"
 cd "$TMP_DIR"
-git clone --depth 1 https://github.com/flant/kubernetes-nginx-ingress.git
+git clone --depth 1 https://github.com/flant/kubernetes-efk.git
 cd "$WORKDIR"
 
 
 function install {
-  kubectl create ns kube-nginx-ingress
-  # set ingress controller replicas count secret
-  sed -i -e "s%##INGRESS_CONTROLLER_REPLICAS##%$INGRESS_CONTROLLER_REPLICAS%g" manifests/ingress-controller/nginx.yaml
-  kctl apply -Rf manifests/ingress-controller/
-  kctl apply -Rf manifests/$TYPE/
+  PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+  PASSWORD_BASE64=$(echo -n "$PASSWORD" | base64 -w0)
+  BASIC_AUTH_SECRET=$(echo "$PASSWORD" | htpasswd -ni admin | base64 -w0)
+  # install basic-auth secret
+  sed -i -e "s%##BASIC_AUTH_SECRET##%$BASIC_AUTH_SECRET%" -e "s%##PLAINTEXT_PASSWORD##%$PASSWORD_BASE64%" \
+              manifests/ingress/basic-auth-secret.yaml
+  # install ingress host
+  sed -i -e "s/##KIBANA_HOST##/$KIBANA_HOST/g" manifests/ingress/ingress.yaml
+  # set storage parameters
+  sed -i -e "s/##STORAGE_CLASS_NAME##/$STORAGE_CLASS_NAME/g" \
+         -e "s/##STORAGE_SIZE##/$STORAGE_SIZE/g" \
+              manifests/es-data/es-data.yaml
+  # set memory usage
+  find manifests/ -type f -exec \
+          sed -i "s/##MEMORY_USAGE##/$MEMORY_USAGE/g" {} +
+  $DEPLOY_SCRIPT
+  echo '##################################'
+  echo "Login: admin"
+  echo "Password: $PASSWORD"
+  echo '##################################'
 }
 
 function upgrade {
-  # get current replica count and load balancer type
-  if $(kctl get deploy nginx > /dev/null 2>/dev/null); then
-    INGRESS_CONTROLLER_REPLICAS=$(kctl get deploy nginx -o json | jq -r '.spec.replicas')
-  else
-    INGRESS_CONTROLLER_REPLICAS=3
-  fi
-  # set ingress controller replicas count secret
-  sed -i -e "s%##INGRESS_CONTROLLER_REPLICAS##%$INGRESS_CONTROLLER_REPLICAS%g" manifests/ingress-controller/nginx.yaml
-
-  if [[ $(kctl get svc default-http-backend -o json | jq -r '.spec.clusterIP') != "None" ]] ; then
-    kctl delete svc default-http-backend
-  fi
-
-  kctl apply -Rf manifests/ingress-controller/
-  if $(kctl get ds/nginx > /dev/null 2>/dev/null); then
-    kctl delete ds/nginx --grace-period=1
-  fi
-  kctl apply -Rf manifests/$TYPE/
-  if $(kctl get cm/nginx-template > /dev/null 2>/dev/null); then
-    kctl delete cm/nginx-template
-  fi
+  PASSWORD=$(kubectl -n "$NAMESPACE" get secret basic-auth-secret -o json | jq .data.password -r | base64 -d)
+  PASSWORD_BASE64=$(echo -n "$PASSWORD" | base64 -w0)
+  KIBANA_HOST=$(kubectl -n "$NAMESPACE" get ingress kibana-ingress -o json | jq -r '.spec.rules[0].host')
+  BASIC_AUTH_SECRET=$(echo "$PASSWORD" | htpasswd -ni admin | base64 -w0)
+  # install basic-auth secret
+  sed -i -e "s%##BASIC_AUTH_SECRET##%$BASIC_AUTH_SECRET%" -e "s%##PLAINTEXT_PASSWORD##%$PASSWORD_BASE64%" \
+              manifests/ingress/basic-auth-secret.yaml
+  # install ingress host
+  sed -i -e "s/##KIBANA_HOST##/$KIBANA_HOST/g" manifests/ingress/ingress.yaml
+  # set storage parameters
+  sed -i -e "s/##STORAGE_CLASS_NAME##/$STORAGE_CLASS_NAME/g" \
+         -e "s/##STORAGE_SIZE##/$STORAGE_SIZE/g" \
+              manifests/es-data/es-data.yaml
+  # set memory usage
+  find manifests/ -type f -exec \
+          sed -i "s/##MEMORY_USAGE##/$MEMORY_USAGE/g" {} +
+  $DEPLOY_SCRIPT
 }
 
 if [ "$MODE" == "install" ]
 then
-  kubectl get ns kube-nginx-ingress >/dev/null 2>&1 && FIRST_INSTALL="false"
+  if [ -z "$1" ] && [ -z "$2" ]; then echo "One positional arguments required. See '--help' for more information."; exit 1; fi
+  KIBANA_HOST="$1"
+  kubectl get ns "$NAMESPACE" >/dev/null 2>&1 && FIRST_INSTALL="false"
   if [ "$FIRST_INSTALL" == "true" ]
   then
     install
   else
-    echo "Namespace kube-nginx-ingress exists. Please, delete or run with the --upgrade option it to avoid shooting yourself in the foot."
+    echo "Namespace $NAMESPACE exists. Please, delete or run with the --upgrade option it to avoid shooting yourself in the foot."
   fi
 elif [ "$MODE" == "upgrade" ]
 then
+  kubectl get ns "$NAMESPACE" >/dev/null 2>&1 || (echo "Namespace '$NAMESPACE' does not exist. Please, install operator with '-i' option first." ; exit 1)
   upgrade
 elif [ "$MODE" == "delete" ]
 then
-  kubectl delete clusterrolebinding/kube-nginx-ingress || true
-  kubectl delete clusterrole/kube-nginx-ingress || true
-  kubectl delete ns kube-nginx-ingress || true
+  $TEARDOWN_SCRIPT || true
+  kubectl delete ns "$NAMESPACE" || true
 fi
 
 function cleanup {

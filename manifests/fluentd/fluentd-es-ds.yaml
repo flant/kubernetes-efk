@@ -76,7 +76,7 @@ spec:
         - name: FLUENTD_ARGS
           value: --no-supervisor -q
         - name:  FLUENT_ELASTICSEARCH_HOST
-          value: "192.168.226.110"
+          value: "elasticsearch"
         resources:
           limits:
             memory: 2Gi
