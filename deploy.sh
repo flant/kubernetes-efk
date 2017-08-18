@@ -36,3 +36,6 @@ kctl apply -f manifests/fluentd
 
 echo "Deploying kibana"
 kctl apply -f manifests/kibana
+
+echo "Deploying ingress"
+kctl apply -f manifests/ingress
