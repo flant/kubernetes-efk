@@ -9,7 +9,7 @@ Usage: ctl.sh [OPTION]... [-i|--install] KIBANA_HOST
 Install EFK (ElasticSearch, Fluentd, Kibana) stack to Kubernetes cluster.
 
 Mandatory arguments:
-  -i, --install                install into 'monitoring' namespace, override with '-n' option
+  -i, --install                install into 'kube-logging' namespace, override with '-n' option
   -u, --upgrade                upgrade existing installation, will reuse password and host names
   -d, --delete                 remove everything, including the namespace
   --storage-class-name         name of the storage class

@@ -8,8 +8,7 @@ metadata:
     role: kibana
 spec:
   selector:
-    component: elk
-    role: kibana
+    k8s-app: kibana-logging
   ports:
   - name: http
     port: 80
