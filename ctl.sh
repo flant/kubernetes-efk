@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 ! read -rd '' HELP_STRING <<"EOF"
 Usage: ctl.sh [OPTION]... [-i|--install] KIBANA_HOST
@@ -23,8 +23,8 @@ EOF
 RANDOM_NUMBER=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 4 | head -n 1)
 TMP_DIR="/tmp/prometheus-ctl-$RANDOM_NUMBER"
 WORKDIR="$TMP_DIR/kubernetes-efk"
-DEPLOY_SCRIPT="deploy.sh"
-TEARDOWN_SCRIPT="teardown.sh"
+DEPLOY_SCRIPT="./deploy.sh"
+TEARDOWN_SCRIPT="./teardown.sh"
 
 MODE=""
 USER=admin
@@ -84,6 +84,7 @@ function install {
   PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
   PASSWORD_BASE64=$(echo -n "$PASSWORD" | base64 -w0)
   BASIC_AUTH_SECRET=$(echo "$PASSWORD" | htpasswd -ni admin | base64 -w0)
+
   # install basic-auth secret
   sed -i -e "s%##BASIC_AUTH_SECRET##%$BASIC_AUTH_SECRET%" -e "s%##PLAINTEXT_PASSWORD##%$PASSWORD_BASE64%" \
               manifests/ingress/basic-auth-secret.yaml
