@@ -7,7 +7,7 @@ metadata:
     role: client
     k8s-app: elasticsearch-logging
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
