@@ -6,13 +6,7 @@ metadata:
     ingress.kubernetes.io/auth-type: basic
     ingress.kubernetes.io/auth-secret: basic-auth
     ingress.kubernetes.io/auth-realm: "Authentication Required"
-    kubernetes.io/tls-acme: "true"
-    kubernetes.io/ingress.class: "nginx"    
 spec:
-  tls:
-  - hosts:
-    - ##KIBANA_HOST##
-    secretName: kibana-tls
   rules:
   - host: ##KIBANA_HOST##
     http:
