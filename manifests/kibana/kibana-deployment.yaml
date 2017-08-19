@@ -33,6 +33,12 @@ spec:
             value: "false"
           - name: XPACK_SECURITY_ENABLED
             value: "false"
+          - name: XPACK_REPORTING_ENABLED
+            value: "false"
+          - name: XPACK_ML_ENABLED
+            value: "false"   
+          - name: XPACK_GRAPH_ENABLED
+            value: "false"    
         ports:
         - containerPort: 5601
           name: ui
