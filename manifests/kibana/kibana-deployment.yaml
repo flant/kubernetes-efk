@@ -40,7 +40,7 @@ spec:
           - name: XPACK_ML_ENABLED
             value: "false"   
           - name: XPACK_GRAPH_ENABLED
-            value: "false"
+            value: "false"    
         ports:
         - containerPort: 5601
           name: ui
