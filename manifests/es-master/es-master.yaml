@@ -58,6 +58,8 @@ spec:
           value: "false"
         - name: "ES_JAVA_OPTS"
           value: "-Xms##MEMORY_USAGE## -Xmx##MEMORY_USAGE##"
+        - name: "ES_PLUGINS_INSTALL"
+          value: "x-pack"
         ports:
         - containerPort: 9300
           name: transport
