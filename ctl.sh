@@ -39,7 +39,7 @@ MEMORY_MASTER="8G"
 MEMORY_DATA="8G"
 
 
-TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage: \
+TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage-client:,memory-usage-master:,memory-usage-data: \
              -n 'ctl' -- "$@")
 
 eval set -- "$TEMP"
