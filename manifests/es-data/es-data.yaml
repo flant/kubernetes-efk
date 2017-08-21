@@ -62,6 +62,8 @@ spec:
           value: "60%"
         - name: "THREAD_POOL_INDEX_SIZE"
           value: "100"
+        - name: "THREAD_POOL_BULK_SIZE"
+          value: "100"
         ports:
         - containerPort: 9300
           name: transport
