@@ -60,7 +60,7 @@ spec:
           value: "async"
         - name: "INDICES_MEMORY_INDEX_BUFFER_SIZE"
           value: "60%"
-        - name: "THREADPOOL_INDEX_SIZE"
+        - name: "THREAD_POOL_INDEX_SIZE"
           value: "100"
         ports:
         - containerPort: 9300
