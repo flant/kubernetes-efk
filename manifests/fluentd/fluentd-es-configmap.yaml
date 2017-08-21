@@ -345,8 +345,8 @@ data:
        port 9200
        logstash_format true
        # Set the chunk limits.
-       buffer_chunk_limit 2M
-       buffer_queue_limit 8
+       buffer_chunk_limit 64M
+       buffer_queue_limit 128
        flush_interval 5s
        # Never wait longer than 5 minutes between retries.
        max_retry_wait 30

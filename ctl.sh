@@ -14,7 +14,9 @@ Mandatory arguments:
   -d, --delete                 remove everything, including the namespace
   --storage-class-name         name of the storage class
   --storage-size               storage size with optional IEC suffix
-  --memory-usage               java RSS limit
+  --memory-usage-client        java RSS limit for client pods
+  --memory-usage-master        java RSS limit for master pods
+  --memory-usage-data          java RSS limit for data pods
 
 Optional arguments:
   -h, --help                   output this message
@@ -28,12 +30,13 @@ TEARDOWN_SCRIPT="./teardown.sh"
 
 MODE=""
 USER=admin
-USER_BASE64=$(echo -n "$USER" | base64 -w0)
 NAMESPACE="kube-logging"
 FIRST_INSTALL="true"
 STORAGE_CLASS_NAME="rbd"
 STORAGE_SIZE="20Gi"
-MEMORY_USAGE="8192m"
+MEMORY_CLIENT="8G"
+MEMORY_MASTER="8G"
+MEMORY_DATA="8G"
 
 
 TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage: \
@@ -53,8 +56,12 @@ while true; do
       STORAGE_CLASS_NAME="$2"; shift 2;;
     --storage-size )
       STORAGE_SIZE="$2"; shift 2;;
-    --memory-usage )
-      MEMORY_USAGE="$2"; shift 2;;
+    --memory-usage-client )
+      MEMORY_CLIENT="$2"; shift 2;;
+    --memory-usage-master )
+      MEMORY_MASTER="$2"; shift 2;;
+    --memory-usage-data )
+      MEMORY_DATA="$2"; shift 2;;
     -h | --help )
       echo "$HELP_STRING"; exit 0 ;;
     -- )
@@ -96,7 +103,9 @@ function install {
               manifests/es-data/es-data.yaml
   # set memory usage
   find manifests/ -type f -exec \
-          sed -i "s/##MEMORY_USAGE##/$MEMORY_USAGE/g" {} +
+          sed -i -e "s/##MEMORY_CLIENT##/$MEMORY_CLIENT/g" \
+                 -e "s/##MEMORY_MASTER##/$MEMORY_MASTER/g" \
+                 -e "s/##MEMORY_DATA##/$MEMORY_DATA/g" {} +
   $DEPLOY_SCRIPT
   echo '##################################'
   echo "Login: admin"
@@ -120,7 +129,9 @@ function upgrade {
               manifests/es-data/es-data.yaml
   # set memory usage
   find manifests/ -type f -exec \
-          sed -i "s/##MEMORY_USAGE##/$MEMORY_USAGE/g" {} +
+          sed -i -e "s/##MEMORY_CLIENT##/$MEMORY_CLIENT/g" \
+                 -e "s/##MEMORY_MASTER##/$MEMORY_MASTER/g" \
+                 -e "s/##MEMORY_DATA##/$MEMORY_DATA/g" {} +
   $DEPLOY_SCRIPT
 }
 
