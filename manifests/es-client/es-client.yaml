@@ -54,7 +54,7 @@ spec:
         - name: HTTP_ENABLE
           value: "true"
         - name: "ES_JAVA_OPTS"
-          value: "-Xms##MEMORY_USAGE## -Xmx##MEMORY_USAGE##"
+          value: "-Xms##MEMORY_USAGE_CLIENT## -Xmx##MEMORY_USAGE_CLIENT##"
         ports:
         - containerPort: 9200
           name: http
