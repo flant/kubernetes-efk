@@ -103,9 +103,9 @@ function install {
               manifests/es-data/es-data.yaml
   # set memory usage
   find manifests/ -type f -exec \
-          sed -i -e "s/##MEMORY_CLIENT##/$MEMORY_CLIENT/g" \
-                 -e "s/##MEMORY_MASTER##/$MEMORY_MASTER/g" \
-                 -e "s/##MEMORY_DATA##/$MEMORY_DATA/g" {} +
+          sed -i -e "s/##MEMORY_USAGE_CLIENT##/$MEMORY_CLIENT/g" \
+                 -e "s/##MEMORY_USAGE_MASTER##/$MEMORY_MASTER/g" \
+                 -e "s/##MEMORY_USAGE_DATA##/$MEMORY_DATA/g" {} +
   $DEPLOY_SCRIPT
   echo '##################################'
   echo "Login: admin"
@@ -129,9 +129,9 @@ function upgrade {
               manifests/es-data/es-data.yaml
   # set memory usage
   find manifests/ -type f -exec \
-          sed -i -e "s/##MEMORY_CLIENT##/$MEMORY_CLIENT/g" \
-                 -e "s/##MEMORY_MASTER##/$MEMORY_MASTER/g" \
-                 -e "s/##MEMORY_DATA##/$MEMORY_DATA/g" {} +
+          sed -i -e "s/##MEMORY_USAGE_CLIENT##/$MEMORY_CLIENT/g" \
+                 -e "s/##MEMORY_USAGE_MASTER##/$MEMORY_MASTER/g" \
+                 -e "s/##MEMORY_USAGE_DATA##/$MEMORY_DATA/g" {} +
   $DEPLOY_SCRIPT
 }
 
