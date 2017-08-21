@@ -55,11 +55,11 @@ spec:
         - name: "ES_JAVA_OPTS"
           value: "-Xms##MEMORY_USAGE_DATA## -Xmx##MEMORY_USAGE_DATA##"
         - name: "INDEX_REFRESH_INTERVAL"
-          value: 30
+          value: "30"
         - name: "INDEX_TRANSLOG_DURABILITY"
-          values: "async"
+          value: "async"
         - name: "INDICES_MEMORY_INDEX_BUFFER_SIZE"
-          values: "60%"
+          value: "60%"
         ports:
         - containerPort: 9300
           name: transport
