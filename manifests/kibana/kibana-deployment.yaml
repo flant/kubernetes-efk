@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: kibana-logging
-        image: zuzzas/kibana-xpackless:5.5.1
+        image: zuzzas/kibana-xpackless:5.5.2
         #resources:
         #  # need more cpu upon initialization, therefore burstable class
         #  limits:
