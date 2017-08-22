@@ -45,6 +45,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: "NETWORK_HOST"
+          value: "0.0.0.0"
         - name: "CLUSTER_NAME"
           value: "myesdb"
         - name: NODE_MASTER
