@@ -106,6 +106,11 @@ function install {
           sed -i -e "s/##MEMORY_USAGE_CLIENT##/$MEMORY_CLIENT/g" \
                  -e "s/##MEMORY_USAGE_MASTER##/$MEMORY_MASTER/g" \
                  -e "s/##MEMORY_USAGE_DATA##/$MEMORY_DATA/g" {} +
+  # set pod memory requests
+  find manifests/ -type f -exec \
+          sed -i -e "s/##MEMORY_USAGE_CLIENT_REQUESTS##/${MEMORY_CLIENT^^}i/g" \
+                 -e "s/##MEMORY_USAGE_MASTER_REQUESTS##/${MEMORY_MASTER^^}i/g" \
+                 -e "s/##MEMORY_USAGE_DATA_REQUESTS##/${MEMORY_DATA^^}i/g" {} +
   $DEPLOY_SCRIPT
   echo '##################################'
   echo "Login: admin"
@@ -132,6 +137,11 @@ function upgrade {
           sed -i -e "s/##MEMORY_USAGE_CLIENT##/$MEMORY_CLIENT/g" \
                  -e "s/##MEMORY_USAGE_MASTER##/$MEMORY_MASTER/g" \
                  -e "s/##MEMORY_USAGE_DATA##/$MEMORY_DATA/g" {} +
+  # set pod memory requests
+  find manifests/ -type f -exec \
+          sed -i -e "s/##MEMORY_USAGE_CLIENT_REQUESTS##/${MEMORY_CLIENT^^}i/g" \
+                 -e "s/##MEMORY_USAGE_MASTER_REQUESTS##/${MEMORY_MASTER^^}i/g" \
+                 -e "s/##MEMORY_USAGE_DATA_REQUESTS##/${MEMORY_DATA^^}i/g" {} +
   $DEPLOY_SCRIPT
 }
 

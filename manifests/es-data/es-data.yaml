@@ -60,6 +60,9 @@ spec:
           value: "1000"
         - name: "THREAD_POOL_BULK_QUEUE_SIZE"
           value: "1000"
+        resources:
+          requests:
+            memory: ##MEMORY_USAGE_DATA_REQUESTS##
         ports:
         - containerPort: 9300
           name: transport

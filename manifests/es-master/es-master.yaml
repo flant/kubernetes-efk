@@ -58,6 +58,9 @@ spec:
           value: "false"
         - name: "ES_JAVA_OPTS"
           value: "-Xms##MEMORY_USAGE_MASTER## -Xmx##MEMORY_USAGE_MASTER##"
+        resources:
+          requests:
+            memory: ##MEMORY_USAGE_MASTER_REQUESTS##
         ports:
         - containerPort: 9300
           name: transport
