@@ -58,6 +58,8 @@ spec:
           value: "50%"
         - name: "THREAD_POOL_INDEX_QUEUE_SIZE"
           value: "1000"
+        - name: "THREAD_POOL_BULK_SIZE"
+          value: "16"
         - name: "THREAD_POOL_BULK_QUEUE_SIZE"
           value: "1000"
         ports:
