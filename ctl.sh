@@ -43,7 +43,7 @@ MEMORY_DATA="8G"
 READ_FROM_HEAD_STR='read_from_head true'
 
 
-TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage-client:,memory-usage-master:,memory-usage-data:,--read-from-head \
+TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage-client:,memory-usage-master:,memory-usage-data:,read-from-head \
              -n 'ctl' -- "$@")
 
 eval set -- "$TEMP"
