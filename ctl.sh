@@ -117,9 +117,9 @@ function install {
           sed -i -e "s/##MEMORY_USAGE_CLIENT_REQUESTS##/${MEMORY_CLIENT^^}i/g" \
                  -e "s/##MEMORY_USAGE_MASTER_REQUESTS##/${MEMORY_MASTER^^}i/g" \
                  -e "s/##MEMORY_USAGE_DATA_REQUESTS##/${MEMORY_DATA^^}i/g" {} +
-  if [ -z "$READ_FROM_HEAD" ];
-    then 
-      sed -i -e "s/##READ_FROM_HEAD_STR##/$READ_FROM_HEAD_STR/g" manifests/fluentd/fluentd-es-configmap.yaml
+  if $READ_FROM_HEAD ;
+  then
+    sed -i -e "s/##READ_FROM_HEAD_STR##/$READ_FROM_HEAD_STR/g" manifests/fluentd/fluentd-es-configmap.yaml
   fi
   $DEPLOY_SCRIPT
   echo '##################################'
