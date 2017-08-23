@@ -105,7 +105,7 @@ data:
       time_format %Y-%m-%dT%H:%M:%S.%NZ
       tag kubernetes.*
       format json
-      read_from_head true
+      ##READ_FROM_HEAD_STR##
     </source>
   system.input.conf: |-
     # Example:
@@ -273,7 +273,7 @@ data:
       type systemd
       filters [{ "_SYSTEMD_UNIT": "docker.service" }]
       pos_file /var/log/gcp-journald-docker.pos
-      read_from_head true
+      ##READ_FROM_HEAD_STR##
       tag docker
     </source>
 
@@ -281,7 +281,7 @@ data:
       type systemd
       filters [{ "_SYSTEMD_UNIT": "kubelet.service" }]
       pos_file /var/log/gcp-journald-kubelet.pos
-      read_from_head true
+      ##READ_FROM_HEAD_STR##
       tag kubelet
     </source>
 
@@ -289,7 +289,7 @@ data:
       type systemd
       filters [{ "_SYSTEMD_UNIT": "node-problem-detector.service" }]
       pos_file /var/log/gcp-journald-node-problem-detector.pos
-      read_from_head true
+      ##READ_FROM_HEAD_STR##
       tag node-problem-detector
     </source>
   forward.input.conf: |-

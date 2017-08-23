@@ -19,6 +19,9 @@ Mandatory arguments:
   --memory-usage-data          java RSS limit for data pods
 
 Optional arguments:
+  --read-from-head             set fluentds option 'read_from_head true'
+
+Optional arguments:
   -h, --help                   output this message
 EOF
 
@@ -37,9 +40,10 @@ STORAGE_SIZE="20Gi"
 MEMORY_CLIENT="8G"
 MEMORY_MASTER="8G"
 MEMORY_DATA="8G"
+READ_FROM_HEAD_STR='read_from_head true'
 
 
-TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage-client:,memory-usage-master:,memory-usage-data: \
+TEMP=$(getopt -o i,u,d,h --long help,install,upgrade,delete,storage-class-name:,storage-size:,memory-usage-client:,memory-usage-master:,memory-usage-data:,--read-from-head \
              -n 'ctl' -- "$@")
 
 eval set -- "$TEMP"
@@ -62,6 +66,8 @@ while true; do
       MEMORY_MASTER="$2"; shift 2;;
     --memory-usage-data )
       MEMORY_DATA="$2"; shift 2;;
+    --read-from-head )
+      READ_FROM_HEAD=true ; shift ;;
     -h | --help )
       echo "$HELP_STRING"; exit 0 ;;
     -- )
@@ -111,6 +117,10 @@ function install {
           sed -i -e "s/##MEMORY_USAGE_CLIENT_REQUESTS##/${MEMORY_CLIENT^^}i/g" \
                  -e "s/##MEMORY_USAGE_MASTER_REQUESTS##/${MEMORY_MASTER^^}i/g" \
                  -e "s/##MEMORY_USAGE_DATA_REQUESTS##/${MEMORY_DATA^^}i/g" {} +
+  if [ -z "$READ_FROM_HEAD" ];
+    then 
+      sed -i -e "s/##READ_FROM_HEAD_STR##/$READ_FROM_HEAD_STR/g" manifests/fluentd/fluentd-es-configmap.yaml
+  fi
   $DEPLOY_SCRIPT
   echo '##################################'
   echo "Login: admin"
@@ -142,6 +152,10 @@ function upgrade {
           sed -i -e "s/##MEMORY_USAGE_CLIENT_REQUESTS##/${MEMORY_CLIENT^^}i/g" \
                  -e "s/##MEMORY_USAGE_MASTER_REQUESTS##/${MEMORY_MASTER^^}i/g" \
                  -e "s/##MEMORY_USAGE_DATA_REQUESTS##/${MEMORY_DATA^^}i/g" {} +
+  if [ -z "$READ_FROM_HEAD" ];
+    then 
+      sed -i -e "s/##READ_FROM_HEAD_STR##/$READ_FROM_HEAD_STR/g" manifests/fluentd/fluentd-es-configmap.yaml
+  fi
   $DEPLOY_SCRIPT
 }
 
